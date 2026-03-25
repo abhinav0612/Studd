@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -7,74 +8,63 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Initialize auth state from localStorage
+    // Initialize auth state from local storage token
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-                setIsAuthenticated(true);
-            } catch (error) {
-                console.error('Failed to parse stored user:', error);
+        const loadUser = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await api.get('/users/profile');
+                    setUser(response.data);
+                    setIsAuthenticated(true);
+                } catch (error) {
+                    console.error('Failed to fetch user:', error);
+                    localStorage.removeItem('token');
+                }
             }
-        }
-        setLoading(false);
+            setLoading(false);
+        };
+        loadUser();
     }, []);
 
-    const login = (email, password) => {
-        // Mock authentication - replace with real API call
+    const login = async (email, password) => {
         if (!email || !password) {
             throw new Error('Email and password are required');
         }
 
-        const userData = {
-            id: Date.now(),
-            email,
-            name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1).replace('.', ' '),
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-            major: 'Computer Science',
-            joinedDate: new Date().toISOString(),
-            interests: ['Machine Learning', 'Web Development', 'Data Structures']
-        };
-
+        const response = await api.post('/auth/login', { email, password });
+        const { token, user: userData } = response.data;
+        
+        localStorage.setItem('token', token);
         setUser(userData);
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
         return userData;
     };
 
-    const register = (email, password, name, major) => {
-        // Mock registration - replace with real API call
+    const register = async (email, password, name, major) => {
         if (!email || !password || !name) {
             throw new Error('Email, password, and name are required');
         }
 
-        const userData = {
-            id: Date.now(),
-            email,
-            name,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-            major: major || 'Undeclared',
-            joinedDate: new Date().toISOString(),
-            interests: []
-        };
+        const response = await api.post('/auth/register', { email, password, name, major });
+        const { token, user: userData } = response.data;
 
+        localStorage.setItem('token', token);
         setUser(userData);
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
         return userData;
     };
 
     const logout = () => {
         setUser(null);
         setIsAuthenticated(false);
-        localStorage.removeItem('user');
+        localStorage.removeItem('token');
     };
 
-    const updateProfile = (updates) => {
+    const updateProfile = async (updates) => {
+        // Optional placeholder for profile updates
         const updatedUser = { ...user, ...updates };
         setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
         return updatedUser;
     };
 

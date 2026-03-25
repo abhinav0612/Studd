@@ -22,21 +22,21 @@ const LoginPage = () => {
 
         try {
             if (isLogin) {
-                login(email, password);
+                await login(email, password);
             } else {
-                register(email, password, name, major);
+                await register(email, password, name, major);
             }
             navigate('/dashboard');
         } catch (err) {
-            setError(err.message || 'An error occurred');
+            setError(err.response?.data?.message || err.message || 'An error occurred');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDemoLogin = () => {
+    const handleDemoLogin = async () => {
         try {
-            login('demo@student.edu', 'demo123');
+            await login('demo@student.edu', 'demo123');
             navigate('/dashboard');
         } catch (err) {
             setError('Demo login failed');

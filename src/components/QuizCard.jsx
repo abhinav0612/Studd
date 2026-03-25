@@ -1,7 +1,7 @@
 import React from 'react';
 import { Brain, Star, Clock, PlayCircle } from 'lucide-react';
 
-const QuizCard = ({ title, topic, questionsCount, timeEst, difficulty = "Medium", score = null }) => {
+const QuizCard = ({ title, topic, questionsCount, timeEst, difficulty = "Medium", score = null, onStartClick }) => {
     return (
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 group hover:-translate-y-1 transition-transform duration-300">
             <div className="flex justify-between items-start mb-4">
@@ -37,7 +37,7 @@ const QuizCard = ({ title, topic, questionsCount, timeEst, difficulty = "Medium"
             </div>
 
             <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                <button className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                <button onClick={onStartClick} className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
                     {score !== null ? 'Retake Quiz' : 'Start Quiz'}
                     <PlayCircle className="w-4 h-4" />
                 </button>

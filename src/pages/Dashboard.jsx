@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import StudyCard from '../components/StudyCard';
 import QuizCard from '../components/QuizCard';
+import QuizModal from '../components/QuizModal';
 import { useAuth } from '../context/AuthContext';
 import { PlusCircle, Search, BookOpen, Users, Zap, Calendar, Clock, X } from 'lucide-react';
+import api from '../utils/api';
 
 const Dashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showCreateRoom, setShowCreateRoom] = useState(false);
+    const [activeRooms, setActiveRooms] = useState([]);
+    const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [roomData, setRoomData] = useState({
         title: '',
         subject: '',
@@ -18,12 +22,32 @@ const Dashboard = () => {
     });
     const { user } = useAuth();
 
-    const handleCreateRoom = () => {
+    useEffect(() => {
+        fetchRooms();
+    }, []);
+
+    const fetchRooms = async () => {
+        try {
+            const res = await api.get('/rooms/active');
+            setActiveRooms(res.data);
+        } catch (error) {
+            console.error("Failed to fetch rooms:", error);
+        }
+    };
+
+    const handleCreateRoom = async () => {
         if (roomData.title && roomData.subject) {
-            console.log('Room created:', roomData);
-            setShowCreateRoom(false);
-            setRoomData({ title: '', subject: '', maxMembers: 4, startTime: '' });
-            // In a real app, this would send to backend
+            try {
+                await api.post('/rooms', {
+                    subject: roomData.subject,
+                    maxSlots: roomData.maxMembers
+                });
+                setShowCreateRoom(false);
+                setRoomData({ title: '', subject: '', maxMembers: 4, startTime: '' });
+                fetchRooms();
+            } catch (error) {
+                console.error("Failed to create room:", error);
+            }
         }
     };
 
@@ -43,7 +67,7 @@ const Dashboard = () => {
 
                         <div className="relative z-10">
                             <h1 className="text-3xl font-poppins font-bold text-slate-900 dark:text-white mb-2">
-                                Welcome back, {user?.name}! 👋
+                                Welcome back, {user?.name || 'Student'}! 👋
                             </h1>
                             <p className="text-slate-500 dark:text-slate-400">
                                 You have 2 study sessions scheduled today. Keep up the great work!
@@ -79,7 +103,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">My Classes</p>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-white">4</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white">{user?.classes?.length || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +114,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">Quizzes Done</p>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-white">8</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white">{user?.quizzesDone || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -101,7 +125,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">Study Streak</p>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-white">7 days</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white">{user?.studyStreak || 0} days</p>
                                 </div>
                             </div>
                         </div>
@@ -116,30 +140,21 @@ const Dashboard = () => {
                             </Link>
                         </div>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            <StudyCard
-                                title="Advanced Data Structures"
-                                subject="Computer Science"
-                                members={4}
-                                maxMembers={6}
-                                time="Started 10 mins ago"
-                                isActive={true}
-                            />
-                            <StudyCard
-                                title="Calculus III Prep"
-                                subject="Mathematics"
-                                members={2}
-                                maxMembers={4}
-                                time="Today, 3:00 PM"
-                                isActive={false}
-                            />
-                            <StudyCard
-                                title="Physics Midterm Review"
-                                subject="Physics"
-                                members={8}
-                                maxMembers={10}
-                                time="Tomorrow, 1:00 PM"
-                                isActive={false}
-                            />
+                            {activeRooms.length > 0 ? (
+                                activeRooms.map(room => (
+                                    <StudyCard
+                                        key={room._id}
+                                        title={`${room.subject} Study Session`}
+                                        subject={room.subject}
+                                        members={room.participants.length}
+                                        maxMembers={room.maxSlots}
+                                        time={new Date(room.startTime).toLocaleString()}
+                                        isActive={room.isActive}
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-slate-500 dark:text-slate-400">No active rooms right now. Create one!</p>
+                            )}
                         </div>
                     </section>
 
@@ -187,6 +202,7 @@ const Dashboard = () => {
                                 questionsCount={15}
                                 timeEst="20 mins"
                                 difficulty="Hard"
+                                onStartClick={() => setSelectedQuiz("Chapter 4: Neural Networks")}
                             />
                             <QuizCard
                                 title="React Hooks Review"
@@ -195,6 +211,7 @@ const Dashboard = () => {
                                 timeEst="10 mins"
                                 difficulty="Medium"
                                 score={85}
+                                onStartClick={() => setSelectedQuiz("React Hooks Review")}
                             />
                             <QuizCard
                                 title="Cell Biology Terms"
@@ -202,6 +219,7 @@ const Dashboard = () => {
                                 questionsCount={25}
                                 timeEst="15 mins"
                                 difficulty="Easy"
+                                onStartClick={() => setSelectedQuiz("Cell Biology Terms")}
                             />
                         </div>
                     </section>
@@ -224,6 +242,13 @@ const Dashboard = () => {
 
                 </div>
             </main>
+
+            {/* Quiz Modal */}
+            <QuizModal
+                isOpen={!!selectedQuiz}
+                onClose={() => setSelectedQuiz(null)}
+                title={selectedQuiz}
+            />
 
             {/* Create Study Room Modal */}
             {showCreateRoom && (
