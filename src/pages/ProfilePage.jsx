@@ -2,9 +2,19 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { Settings, Shield, Edit3, Image, Award, Clock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ProfilePage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                <div className="text-slate-900 dark:text-white font-medium">Loading profile...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -41,17 +51,15 @@ const ProfilePage = () => {
 
                             <div>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    Sarah Mitchell
+                                    {user?.name || 'Student'}
                                     <Shield className="w-5 h-5 text-teal-500" title="Verified Student" />
                                 </h1>
-                                <p className="text-lg text-slate-500 dark:text-slate-400">Computer Science Major, Junior</p>
+                                <p className="text-lg text-slate-500 dark:text-slate-400">{user?.email || 'No email provided'}</p>
 
                                 <div className="mt-6 flex flex-wrap gap-2 text-sm">
-                                    {['React', 'Machine Learning', 'Data Structures', 'UI/UX Design'].map(tag => (
-                                        <span key={tag} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium rounded-lg">
-                                            {tag}
-                                        </span>
-                                    ))}
+                                    <span className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium rounded-lg">
+                                        Active Learner
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -65,12 +73,12 @@ const ProfilePage = () => {
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
                                         <Clock className="w-6 h-6 text-primary mb-2" />
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">124h</div>
-                                        <div className="text-xs text-slate-500 font-medium">Study Time</div>
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{user?.studyStreak || 0}</div>
+                                        <div className="text-xs text-slate-500 font-medium">Day Streak</div>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
                                         <Award className="w-6 h-6 text-secondary mb-2" />
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">15</div>
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{user?.quizzesDone || 0}</div>
                                         <div className="text-xs text-slate-500 font-medium">Quizzes Aced</div>
                                     </div>
                                 </div>
@@ -80,9 +88,8 @@ const ProfilePage = () => {
                             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">About Me</h3>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Hi! I'm Sarah. I love building web applications and exploring AI.
-                                    Always looking for study partners for Data Structures and Machine Learning.
-                                    I tend to study late at night!
+                                    Hi! I'm {user?.name ? user.name.split(' ')[0] : 'a student'}. I'm using StudyBuddy to organize my learning, join study groups, and ace my quizzes!
+                                    Looking forward to connecting with new study partners.
                                 </p>
                             </div>
                         </div>

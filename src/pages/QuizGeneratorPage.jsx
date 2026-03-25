@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { UploadCloud, File, Wand2, ArrowRight, Loader2, CheckCircle, X } from 'lucide-react';
+import mammoth from 'mammoth';
 import QuizCard from '../components/QuizCard';
 import { generateQuizFromText, scoreQuiz } from '../utils/quizGenerator';
 
@@ -75,11 +76,25 @@ const QuizGeneratorPage = () => {
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setTextContent(event.target?.result || '');
-            };
-            reader.readAsText(file);
+            if (file.name.endsWith('.docx')) {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const arrayBuffer = event.target.result;
+                        const result = await mammoth.extractRawText({ arrayBuffer });
+                        setTextContent(result.value);
+                    } catch (err) {
+                        setError('Failed to extract text from DOCX file. Please paste notes instead.');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setTextContent(event.target?.result || '');
+                };
+                reader.readAsText(file);
+            }
         }
     };
 

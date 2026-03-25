@@ -63,20 +63,7 @@ const Sidebar = ({ isOpen }) => {
                             <span className="ms-3">Settings</span>
                         </NavLink>
                     </li>
-                    <li>
-                        <NavLink
-                            to="/admin"
-                            className={({ isActive }) =>
-                                `flex items-center p-3 rounded-xl transition-colors group ${isActive
-                                    ? 'bg-teal-50 text-secondary dark:bg-teal-900/20 dark:text-teal-300'
-                                    : 'text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
-                                }`
-                            }
-                        >
-                            <Shield className="flex-shrink-0 w-5 h-5 transition duration-75 text-secondary group-hover:text-teal-500 dark:text-teal-400 dark:group-hover:text-teal-300" />
-                            <span className="ms-3">Admin Panel</span>
-                        </NavLink>
-                    </li>
+
                     <li>
                         <button
                             onClick={handleLogout}
