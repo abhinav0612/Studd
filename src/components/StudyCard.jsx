@@ -37,7 +37,13 @@ const StudyCard = ({ title, subject, members, maxMembers, time, isActive, isLock
                         </div>
                     ))}
                 </div>
-                <button onClick={() => alert(`${isActive ? 'Joining' : 'Viewing'} Room: ${title}`)} className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${isActive
+                <button onClick={() => {
+                    if (isActive) {
+                        window.open('https://meet.google.com/sbg-dnvq-sug', '_blank');
+                    } else {
+                        alert(`Viewing Room: ${title}`);
+                    }
+                }} className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${isActive
                         ? 'bg-primary text-white hover:bg-indigo-700'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
                     }`}>
